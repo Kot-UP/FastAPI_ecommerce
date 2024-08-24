@@ -30,14 +30,14 @@ async def create_product(db: Annotated[AsyncSession, Depends(get_db)], create_pr
                          get_user: Annotated[dict, Depends(get_current_user)]):
     if get_user.get('is_admin') or get_user.get('is_supplier'):
         await db.execute(insert(Product).values(name=create_product.name,
-                                          description=create_product.description,
-                                          price=create_product.price,
-                                          image_url=create_product.image_url,
-                                          stock=create_product.stock,
-                                          category_id=create_product.category,
-                                          rating=0.0,
-                                          slug=slugify(create_product.name),
-                                          supplier_id=get_user.get('id')))
+                                                description=create_product.description,
+                                                price=create_product.price,
+                                                image_url=create_product.image_url,
+                                                stock=create_product.stock,
+                                                category_id=create_product.category,
+                                                rating=0.0,
+                                                slug=slugify(create_product.name),
+                                                supplier_id=get_user.get('id')))
         await db.commit()
         return {
             'status_code': status.HTTP_201_CREATED,
@@ -48,6 +48,7 @@ async def create_product(db: Annotated[AsyncSession, Depends(get_db)], create_pr
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail='You are not authorized to use this method'
         )
+
 
 @router.get('/{category_slug}')
 async def product_by_category(db: Annotated[AsyncSession, Depends(get_db)], category_slug: str):
@@ -70,14 +71,14 @@ async def product_by_category(db: Annotated[AsyncSession, Depends(get_db)], cate
 
 @router.get('/detail/{product_slug}')
 async def product_detail(db: Annotated[AsyncSession, Depends(get_db)], product_slug: str):
-    product = await db.scalar(select(Product).where(Product.slug == product_slug, Product.is_active == True, Product.stock > 0))
+    product = await db.scalar(
+        select(Product).where(Product.slug == product_slug, Product.is_active == True, Product.stock > 0))
     if not product:
         return HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail='There are no product'
         )
     return product
-
 
 
 @router.put('/detail/{product_slug}')
@@ -93,13 +94,13 @@ async def update_product(db: Annotated[AsyncSession, Depends(get_db)], product_s
     if get_user.get('is_admin') or get_user.get('is_supplier'):
         if get_user.get('id') == product_update.supplier_id or get_user.get('is_admin'):
             await db.execute(update(Product).where(Product.slug == product_slug)
-                       .values(name=update_product_model.name,
-                               description=update_product_model.description,
-                               price=update_product_model.price,
-                               image_url=update_product_model.image_url,
-                               stock=update_product_model.stock,
-                               category_id=update_product_model.category,
-                               slug=slugify(update_product_model.name)))
+                             .values(name=update_product_model.name,
+                                     description=update_product_model.description,
+                                     price=update_product_model.price,
+                                     image_url=update_product_model.image_url,
+                                     stock=update_product_model.stock,
+                                     category_id=update_product_model.category,
+                                     slug=slugify(update_product_model.name)))
             await db.commit()
             return {
                 'status_code': status.HTTP_200_OK,
@@ -116,6 +117,7 @@ async def update_product(db: Annotated[AsyncSession, Depends(get_db)], product_s
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail='You are not authorized to use this method'
         )
+
 
 @router.delete('/delete')
 async def delete_product(db: Annotated[AsyncSession, Depends(get_db)], product_id: int,

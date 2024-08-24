@@ -14,7 +14,7 @@ router = APIRouter(prefix="/reviews", tags=["reviews"])
 
 @router.get('/all_reviews')
 async def all_reviews(db: Annotated[AsyncSession, Depends(get_db)]):
-    reviews = await db.scalars(select(Review).where(Review.is_active==True))
+    reviews = await db.scalars(select(Review).where(Review.is_active == True))
 
     if reviews is None:
         raise HTTPException(
@@ -24,8 +24,9 @@ async def all_reviews(db: Annotated[AsyncSession, Depends(get_db)]):
 
     return reviews.all()
 
+
 @router.get('/products_reviews')
-async def products_reviews(db: Annotated[AsyncSession,Depends(get_db)], product_slug: str):
+async def products_reviews(db: Annotated[AsyncSession, Depends(get_db)], product_slug: str):
     product = await db.scalars(select(Product).where(Product.slug == product_slug))
 
     if product is None:
@@ -34,9 +35,11 @@ async def products_reviews(db: Annotated[AsyncSession,Depends(get_db)], product_
             detail="There is no product"
         )
 
-    product_comment = await db.scalars(select(Review).where(Review.comment, Review.rating_id.grade, Review.product_id == product.id))
+    product_comment = await db.scalars(
+        select(Review).where(Review.comment, Review.rating_id.grade, Review.product_id == product.id))
 
     return product_comment.all()
+
 
 @router.post('/add_review')
 async def add_review(db: Annotated[AsyncSession, Depends(get_db)],
@@ -45,27 +48,28 @@ async def add_review(db: Annotated[AsyncSession, Depends(get_db)],
                      create_product: CreateProduct,
                      slug_product: str,
                      get_user: Annotated[dict, Depends(get_current_user)]):
-
     if get_user.get('is_customer'):
-        review_com = await db.execude(insert(Review).values(product_id=create_review.product_id,
-                                               commen=create_review.commen))
-        await db.execude(update(Product).where(Product.slug == slug_product).values(rating=create_product.rating))
+        review_com = await db.execute(insert(Review).values(product_id=create_review.product_id,
+                                                            commen=create_review.commen))
+        await db.execute(update(Product).where(Product.slug == slug_product).values(rating=create_product.rating))
         await db.commit()
 
         return {
-                'status_code': status.HTTP_200_OK,
-            }
+            'status_code': status.HTTP_200_OK,
+        }
     else:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail='You are not authorized to use this method')
 
+
 @router.delete('/delete')
-async def delete_reviews(db: Annotated[AsyncSession, Depends(get_db)], get_user: Annotated[dict, Depends(get_current_user)],
+async def delete_reviews(db: Annotated[AsyncSession, Depends(get_db)],
+                         get_user: Annotated[dict, Depends(get_current_user)],
                          id_product: int):
     if get_user.get('is_admin'):
-        db.execude(update(Review).where(Review.product_id == id_product).values(is_active=False))
-        db.execude(update(Rating).where(Rating.product_id == id_product).values(is_active=False))
+        await db.execute(update(Review).where(Review.product_id == id_product).values(is_active=False))
+        await db.execute(update(Rating).where(Rating.product_id == id_product).values(is_active=False))
         await db.commit()
         return {'status_code': status.HTTP_200_OK}
     else:

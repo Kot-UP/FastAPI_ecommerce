@@ -24,8 +24,8 @@ async def create_category(db: Annotated[Session, Depends(get_db)], create_catego
                           get_user: Annotated[dict, Depends(get_current_user)]):
     if get_user.get('is_admin'):
         await db.execute(insert(Category).values(name=create_category.name,
-                                           parent_id=create_category.parent_id,
-                                           slug=slugify(create_category.name)))
+                                                 parent_id=create_category.parent_id,
+                                                 slug=slugify(create_category.name)))
         await db.commit()
         return {'status_code': status.HTTP_201_CREATED,
                 'transaction': 'Successful'}
@@ -41,7 +41,6 @@ async def create_category(db: Annotated[Session, Depends(get_db)], create_catego
 async def update_category(db: Annotated[AsyncSession, Depends(get_db)],
                           category_id: int, update_category: CreateCategory,
                           get_user: Annotated[dict, Depends(get_current_user)]):
-
     if get_user.get('is_admin'):
         category = await db.scalar(select(Category).where(Category.id == category_id))
 
@@ -66,7 +65,6 @@ async def update_category(db: Annotated[AsyncSession, Depends(get_db)],
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail='You must be admin user for this'
         )
-
 
 
 @router.delete('/delete')

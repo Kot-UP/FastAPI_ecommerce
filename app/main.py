@@ -21,7 +21,7 @@ from fastapi.responses import JSONResponse
 app = FastAPI()
 app.add_middleware(SessionMiddleware, secret_key="7UzGQS7woBazLUtVQJG39ywOP7J7lkPkB0UmDhMgBR8=")
 # app.add_middleware(TimingMiddleware)
-logger.add("info.log", format="Log: [{extra[log_id]}:{time} - {level} - {message} ", level="INFO", enqueue = True)
+logger.add("info.log", format="Log: [{extra[log_id]}:{time} - {level} - {message} ", level="INFO", enqueue=True)
 
 
 @app.middleware("http")
@@ -61,6 +61,7 @@ async def main_page(name):
     hello_world()
     return {"message": f"Hello {name}"}
 
+
 def hello_world():
     logger.info("hello() called!")
 
@@ -83,10 +84,12 @@ async def session_set(request: Request):
     request.session["my_session"] = "1234"
     return 'ok'
 
+
 @app.get("/read_session")
 async def session_info(request: Request):
     my_var = request.session.get("my_session")
     return my_var
+
 
 @app.get("/delete_session")
 async def session_delete(request: Request):
@@ -110,6 +113,4 @@ app.include_router(auth.router)
 app.include_router(permission.router)
 app.include_router(reviews.router)
 
-
 # uvicorn app.main:app --reload
-
